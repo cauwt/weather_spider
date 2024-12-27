@@ -14,7 +14,9 @@ from time import sleep
 from absl import app, flags
 from tqdm import tqdm
 
-from . import config_util, datetime_util
+from .util import config_util
+
+from .util import datetime_util
 from .downloader import AvatarPictureDownloader
 from .parser import AlbumParser, IndexParser, PageParser, PhotoParser
 from .user import User
