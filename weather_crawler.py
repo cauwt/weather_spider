@@ -25,14 +25,14 @@ def fetch_weather_data(url: str) -> dict:
         return weather_data
     
     except Exception as e:
-        logging.error(f"获取天气数据失败: {str(e)}")
+        logging.error(f"获取天气数据失败: {str(e)}", exc_info=True)
         raise
 
 def process_weather_data(weather_data: dict) -> pd.DataFrame:
     """处理天气数据"""
     try:
         # 解析时间和城市名
-        date_hour = datetime.strptime(weather_data['od']['od0'], '%Y%m%d%H%M')
+        date_hour = datetime.strptime(weather_data['od']['od0'], '%Y%m%d%H%M%S')
         city_name = weather_data['od']['od1']
         
         # 处理小时数据
@@ -66,7 +66,7 @@ def process_weather_data(weather_data: dict) -> pd.DataFrame:
         return pd.DataFrame(records)
     
     except Exception as e:
-        logging.error(f"处理天气数据失败: {str(e)}")
+        logging.error(f"处理天气数据失败: {str(e)}", exc_info=True)
         raise
 
 def save_to_csv(df: pd.DataFrame, filename: str) -> None:
@@ -75,10 +75,10 @@ def save_to_csv(df: pd.DataFrame, filename: str) -> None:
         df.to_csv(filename, index=False, encoding='utf-8')
         logging.info(f"数据已保存到 {filename}")
     except Exception as e:
-        logging.error(f"保存CSV文件失败: {str(e)}")
+        logging.error(f"保存CSV文件失败: {str(e)}", exc_info=True)
         raise
 
-def main(city_code: str = '101230201'):
+def crawler(city_code: str = '101230201'):
     # 配置日志
     logging.basicConfig(level=logging.INFO)
     
@@ -100,4 +100,4 @@ def main(city_code: str = '101230201'):
         return
 
 if __name__ == '__main__':
-    main()
+    crawler()
