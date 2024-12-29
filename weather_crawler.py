@@ -78,7 +78,7 @@ def save_to_csv(df: pd.DataFrame, filename: str) -> None:
         logging.error(f"保存CSV文件失败: {str(e)}", exc_info=True)
         raise
 
-def crawler(city_code: str = '101230201'):
+def crawler(city_code: str = '101230201', city_name: str = '厦门'):
     # 配置日志
     logging.basicConfig(level=logging.INFO)
     
@@ -93,7 +93,8 @@ def crawler(city_code: str = '101230201'):
         df = process_weather_data(weather_data)
         
         # 保存数据
-        save_to_csv(df, 'output/weather_data.csv')
+        output_file = f'output/weather_data_{city_name}.csv'
+        save_to_csv(df, output_file)
         
     except Exception as e:
         logging.error(f"程序执行失败: {str(e)}")

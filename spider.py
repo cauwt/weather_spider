@@ -1,0 +1,78 @@
+from typing import List, Dict
+import json
+import re
+import logging
+from weather_crawler import crawler
+import requests
+
+def parse_city_data() -> List[Dict[str, str]]:
+    """
+    从网址获取并解析城市数据，提取城市代码和名称
+    
+    Returns:
+        包含城市信息的字典列表，每个字典包含city_code和city_name
+    """
+    try:
+        # 获取网页内容
+        url = 'https://j.i8tq.com/weather2020/search/city.js'
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers)
+        response.encoding = 'utf-8'
+        
+        # 提取JSON数据
+        json_data = re.sub(r'^var\s+city_data\s+=\s+', '', response.text)
+        json_data = json_data.strip(';')
+        
+        # 解析JSON数据
+        data = json.loads(json_data)
+        
+        # 存储解析后的城市数据
+        city_data = []
+        
+        def extract_city_info(d: dict) -> None:
+            """递归提取城市信息"""
+            for value in d.values():
+                if isinstance(value, dict):
+                    if 'AREAID' in value and 'NAMECN' in value:
+                        city_data.append({
+                            'city_code': value['AREAID'],
+                            'city_name': value['NAMECN']
+                        })
+                    else:
+                        extract_city_info(value)
+        
+        # 开始递归提取
+        extract_city_info(data)
+        return city_data
+        
+    except Exception as e:
+        logging.error(f"获取或解析城市数据失败: {str(e)}", exc_info=True)
+        raise
+
+def main():
+    """主函数"""
+    try:
+        # 配置日志
+        logging.basicConfig(level=logging.INFO)
+        
+        # 获取并解析城市数据
+        city_data = parse_city_data()
+        
+        # 遍历城市数据并调用爬虫
+        for city in city_data:
+            try:
+                logging.info(f"开始爬取城市 {city['city_name']} 的数据")
+                crawler(
+                    city_code=city['city_code'],
+                    city_name=city['city_name']
+                )
+            except Exception as e:
+                logging.error(f"爬取城市 {city['city_name']} 数据失败: {str(e)}")
+                continue
+    except Exception as e:
+        logging.error(f"程序执行出错: {str(e)}")
+
+if __name__ == '__main__':
+    main() 
