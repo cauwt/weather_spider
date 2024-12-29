@@ -55,7 +55,11 @@ def main():
     """主函数"""
     try:
         # 配置日志
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
         
         # 获取并解析城市数据
         city_data = parse_city_data()

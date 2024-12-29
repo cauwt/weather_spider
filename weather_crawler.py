@@ -101,4 +101,15 @@ def crawler(city_code: str = '101230201', city_name: str = '厦门'):
         return
 
 if __name__ == '__main__':
-    crawler()
+    import argparse
+    
+    # 创建命令行参数解析器
+    parser = argparse.ArgumentParser(description='天气数据爬虫')
+    parser.add_argument('--city_code', type=str, default='101230201', help='城市代码')
+    parser.add_argument('--city_name', type=str, default='厦门', help='城市名称') 
+    
+    # 解析命令行参数
+    args = parser.parse_args()
+    
+    # 使用参数调用爬虫
+    crawler(city_code=args.city_code, city_name=args.city_name)
