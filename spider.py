@@ -58,8 +58,13 @@ def parse_city_data() -> List[Dict[str, str]]:
         logging.error(f"获取或解析城市数据失败: {str(e)}", exc_info=True)
         raise
 
-def main():
-    """主函数"""
+def main(province: str = None):
+    """
+    主函数
+    
+    Args:
+        province: 省份名称，如果不指定则爬取所有省份数据
+    """
     try:
         # 配置日志
         logging.basicConfig(
@@ -71,6 +76,13 @@ def main():
         # 获取并解析城市数据
         city_data = parse_city_data()
         
+        # 如果指定了省份，则只处理该省份的数据
+        if province:
+            city_data = [city for city in city_data if city['province'] == province]
+            if not city_data:
+                logging.warning(f"未找到省份 {province} 的数据")
+                return
+            
         # 遍历城市数据并调用爬虫
         for city in city_data:
             try:
@@ -88,4 +100,14 @@ def main():
         logging.error(f"程序执行出错: {str(e)}")
 
 if __name__ == '__main__':
-    main() 
+    import argparse
+    
+    # 创建命令行参数解析器
+    parser = argparse.ArgumentParser(description='天气数据爬虫')
+    parser.add_argument('--province', type=str, help='省份名称，不指定则爬取所有省份数据')
+    
+    # 解析命令行参数
+    args = parser.parse_args()
+    
+    # 调用主函数
+    main(province=args.province) 
