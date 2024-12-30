@@ -31,24 +31,24 @@ def parse_city_data() -> List[Dict[str, str]]:
         # 存储解析后的城市数据
         city_data = []
         
-        def extract_city_info(d: dict, province: str = None, region: str = None) -> None:
+        def extract_city_info(d: dict, province_name: str = None, region_name: str = None) -> None:
             """递归提取城市信息，包含省份、地区、城市三级结构"""
             for key, value in d.items():
                 if isinstance(value, dict):
                     if 'AREAID' in value and 'NAMECN' in value:
                         # 当前是城市级别
                         city_data.append({
-                            'province': province,
-                            'region': region,
+                            'province_name': province_name,
+                            'region_name': region_name,
                             'city_name': value['NAMECN'],
                             'city_code': value['AREAID']
                         })
-                    elif province is None:
+                    elif province_name is None:
                         # 当前是省份级别
-                        extract_city_info(value, province=key)
+                        extract_city_info(value, province_name=key)
                     else:
                         # 当前是地区级别
-                        extract_city_info(value, province=province, region=key)
+                        extract_city_info(value, province_name=province_name, region_name=key)
         
         # 开始递归提取
         extract_city_info(data)
@@ -58,12 +58,12 @@ def parse_city_data() -> List[Dict[str, str]]:
         logging.error(f"获取或解析城市数据失败: {str(e)}", exc_info=True)
         raise
 
-def main(province: str = None):
+def main(province_name: str = None):
     """
     主函数
     
     Args:
-        province: 省份名称，如果不指定则爬取所有省份数据
+        province_name: 省份名称，如果不指定则爬取所有省份数据
     """
     try:
         # 配置日志
@@ -77,10 +77,10 @@ def main(province: str = None):
         city_data = parse_city_data()
         
         # 如果指定了省份，则只处理该省份的数据
-        if province:
-            city_data = [city for city in city_data if city['province'] == province]
+        if province_name:
+            city_data = [city for city in city_data if city['province_name'] == province_name]
             if not city_data:
-                logging.warning(f"未找到省份 {province} 的数据")
+                logging.warning(f"未找到省份 {province_name} 的数据")
                 return
             
         # 遍历城市数据并调用爬虫
@@ -90,8 +90,8 @@ def main(province: str = None):
                 crawler(
                     city_code=city['city_code'],
                     city_name=city['city_name'],
-                    province=city['province'],
-                    region=city['region']
+                    province_name=city['province_name'],
+                    region_name=city['region_name']
                 )
             except Exception as e:
                 logging.error(f"爬取城市 {city['city_name']} 数据失败: {str(e)}")
@@ -110,4 +110,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     # 调用主函数
-    main(province=args.province) 
+    main(province_name=args.province) 
