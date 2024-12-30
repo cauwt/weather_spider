@@ -31,17 +31,24 @@ def parse_city_data() -> List[Dict[str, str]]:
         # 存储解析后的城市数据
         city_data = []
         
-        def extract_city_info(d: dict) -> None:
-            """递归提取城市信息"""
-            for value in d.values():
+        def extract_city_info(d: dict, province: str = None, region: str = None) -> None:
+            """递归提取城市信息，包含省份、地区、城市三级结构"""
+            for key, value in d.items():
                 if isinstance(value, dict):
                     if 'AREAID' in value and 'NAMECN' in value:
+                        # 当前是城市级别
                         city_data.append({
-                            'city_code': value['AREAID'],
-                            'city_name': value['NAMECN']
+                            'province': province,
+                            'region': region,
+                            'city_name': value['NAMECN'],
+                            'city_code': value['AREAID']
                         })
+                    elif province is None:
+                        # 当前是省份级别
+                        extract_city_info(value, province=key)
                     else:
-                        extract_city_info(value)
+                        # 当前是地区级别
+                        extract_city_info(value, province=province, region=key)
         
         # 开始递归提取
         extract_city_info(data)
@@ -70,7 +77,9 @@ def main():
                 logging.info(f"开始爬取城市 {city['city_name']} 的数据")
                 crawler(
                     city_code=city['city_code'],
-                    city_name=city['city_name']
+                    city_name=city['city_name'],
+                    province=city['province'],
+                    region=city['region']
                 )
             except Exception as e:
                 logging.error(f"爬取城市 {city['city_name']} 数据失败: {str(e)}")
