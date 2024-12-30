@@ -29,19 +29,29 @@ def fetch_weather_data(url: str) -> dict:
         logging.error(f"获取天气数据失败: {str(e)}", exc_info=True)
         raise
 
-def process_weather_data(weather_data: dict) -> pd.DataFrame:
-    """处理天气数据"""
+def process_weather_data(weather_data: dict, city_name: str) -> pd.DataFrame:
+    """
+    处理天气数据
+    
+    Args:
+        weather_data: 原始天气数据
+        city_name: 城市名称
+    """
     try:
-        # 解析时间和城市名
+        # 只解析时间，不再使用weather_data中的城市名
         date_hour = datetime.strptime(weather_data['od']['od0'], '%Y%m%d%H%M%S')
-        city_name = weather_data['od']['od1']
         
         # 处理小时数据
         records = []
         # 由于od2是数组，需要遍历处理
         for hour_data in weather_data['od']['od2']:
+            # 检查数据是否完整
+            if not all([hour_data['od21'], hour_data['od22'], hour_data['od24'], 
+                       hour_data['od25'], hour_data['od26'], hour_data['od27']]):
+                continue
+                
             record = {
-                'city_name': city_name,
+                'city_name': city_name,  # 使用传入的city_name
                 'date_hour': date_hour,
                 'hour': hour_data['od21'],        # 小时
                 'temperature': hour_data['od22'],  # 温度
@@ -51,6 +61,7 @@ def process_weather_data(weather_data: dict) -> pd.DataFrame:
                 'humidity': hour_data['od27']         # 相对湿度
             }
             records.append(record)
+            
         # 处理小时数据的时间转换
         found_23 = False
         for record in records:
@@ -86,8 +97,8 @@ def crawler(city_code: str = '101230201', city_name: str = '厦门',
         url = f'https://www.weather.com.cn/weather1d/{city_code}.shtml'
         weather_data = fetch_weather_data(url)
         
-        # 处理数据
-        df = process_weather_data(weather_data)
+        # 处理数据，传入city_name
+        df = process_weather_data(weather_data, city_name)
         
         # 保存数据到CSV文件
         output_file = f'output/weather_data_{province_name}_{region_name}_{city_name}.csv'
