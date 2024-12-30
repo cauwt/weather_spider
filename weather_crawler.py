@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 import pandas as pd
 import logging
+from utils import save_to_csv, save_to_database
 
 def fetch_weather_data(url: str) -> dict:
     """获取天气数据"""
@@ -69,15 +70,6 @@ def process_weather_data(weather_data: dict) -> pd.DataFrame:
         logging.error(f"处理天气数据失败: {str(e)}", exc_info=True)
         raise
 
-def save_to_csv(df: pd.DataFrame, filename: str) -> None:
-    """保存数据到CSV文件"""
-    try:
-        df.to_csv(filename, index=False, encoding='utf-8')
-        logging.info(f"数据已保存到 {filename}")
-    except Exception as e:
-        logging.error(f"保存CSV文件失败: {str(e)}", exc_info=True)
-        raise
-
 def crawler(city_code: str = '101230201', city_name: str = '厦门', 
            province_name: str = '福建', region_name: str = '厦门'):
     """
@@ -97,9 +89,12 @@ def crawler(city_code: str = '101230201', city_name: str = '厦门',
         # 处理数据
         df = process_weather_data(weather_data)
         
-        # 保存数据，文件名格式：省份_地区_城市
+        # 保存数据到CSV文件
         output_file = f'output/weather_data_{province_name}_{region_name}_{city_name}.csv'
         save_to_csv(df, output_file)
+        
+        # 保存数据到数据库
+        save_to_database(df, province_name, region_name)
         
     except Exception as e:
         logging.error(f"程序执行失败: {str(e)}")
